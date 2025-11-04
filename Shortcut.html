@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Links - Personal Launcher</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // Lucide Icons as inline SVG components
+        const Plus = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        );
+
+        const Trash2 = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+        );
+
+        const Edit2 = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+            </svg>
+        );
+
+        const X = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        );
+
+        const Search = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+        );
+
+        const Upload = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+        );
+
+        function LinkShortcutApp() {
+            const [links, setLinks] = useState([
+                { id: 1, name: 'Google', url: 'https://google.com', icon: '🔍' },
+                { id: 2, name: 'YouTube', url: 'https://youtube.com', icon: '▶️' },
+                { id: 3, name: 'Twitter', url: 'https://twitter.com', icon: '🐦' },
+                { id: 4, name: 'GitHub', url: 'https://github.com', icon: '💻' },
+                { id: 5, name: 'Reddit', url: 'https://reddit.com', icon: '🤖' },
+            ]);
+            const [showForm, setShowForm] = useState(false);
+            const [editingId, setEditingId] = useState(null);
+            const [formData, setFormData] = useState({ name: '', url: '', icon: '🔗' });
+            const [searchQuery, setSearchQuery] = useState('');
+            const [bgImage, setBgImage] = useState('');
+
+            const handleSave = () => {
+                if (!formData.name || !formData.url) return;
+
+                if (editingId) {
+                    setLinks(links.map(link => 
+                        link.id === editingId ? { ...link, ...formData } : link
+                    ));
+                    setEditingId(null);
+                } else {
+                    setLinks([...links, { ...formData, id: Date.now() }]);
+                }
+                
+                setFormData({ name: '', url: '', icon: '🔗' });
+                setShowForm(false);
+            };
+
+            const handleEdit = (link) => {
+                setFormData({ name: link.name, url: link.url, icon: link.icon });
+                setEditingId(link.id);
+                setShowForm(true);
+            };
+
+            const handleDelete = (id) => {
+                setLinks(links.filter(link => link.id !== id));
+            };
+
+            const handleOpenLink = (url) => {
+                let finalUrl = url;
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    finalUrl = 'https://' + url;
+                }
+                window.open(finalUrl, '_blank');
+            };
+
+            const handleImageUpload = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        setBgImage(event.target.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            const backgroundStyle = bgImage 
+                ? { backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                : { background: 'linear-gradient(to bottom right, #dbeafe, #e0e7ff)' };
+
+            return (
+                <div className="min-h-screen relative" style={backgroundStyle}>
+                    {bgImage && <div className="absolute inset-0 bg-black bg-opacity-30"></div>}
+                    
+                    <div className="relative z-10 min-h-screen flex flex-col">
+                        <nav className="bg-white bg-opacity-95 backdrop-blur-sm shadow-lg">
+                            <div className="max-w-6xl mx-auto px-4 py-4">
+                                <div className="flex items-center gap-4">
+                                    <h1 className="text-2xl font-bold text-gray-800 whitespace-nowrap">Quick Links</h1>
+                                    
+                                    <div className="flex-1 max-w-2xl">
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                value={searchQuery}
+                                                onChange={(e) => {
+                                                    const query = e.target.value;
+                                                    setSearchQuery(query);
+                                                    if (query.trim()) {
+                                                        window.open(`https://search.brave.com/search?q=${encodeURIComponent(query)}`, '_blank');
+                                                    }
+                                                }}
+                                                placeholder="Search with Brave (live search)..."
+                                                className="w-full px-4 py-3 pr-12 rounded-full border-2 border-gray-300 focus:border-orange-500 focus:outline-none transition-colors bg-white bg-opacity-90"
+                                            />
+                                            <div className="absolute right-2 top-1/2 -translate-y-1/2 bg-orange-500 text-white p-2 rounded-full pointer-events-none">
+                                                <Search size={20} />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <label className="cursor-pointer bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 whitespace-nowrap">
+                                        <Upload size={18} />
+                                        <span className="hidden sm:inline">Change BG</span>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageUpload}
+                                            className="hidden"
+                                        />
+                                    </label>
+                                </div>
+
+                                <div className="flex items-center gap-3 mt-4 overflow-x-auto pb-2">
+                                    {links.slice(0, 5).map(link => (
+                                        <div key={link.id} className="relative group flex-shrink-0">
+                                            <button
+                                                onClick={() => handleOpenLink(link.url)}
+                                                className="bg-white bg-opacity-80 backdrop-blur-md rounded-lg px-4 py-2 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 flex items-center gap-2 border border-gray-200 hover:bg-opacity-90"
+                                            >
+                                                <span className="text-2xl">{link.icon}</span>
+                                                <span className="text-sm font-medium text-gray-800 whitespace-nowrap">
+                                                    {link.name}
+                                                </span>
+                                            </button>
+                                            
+                                            <div className="absolute -top-1 -right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    onClick={() => handleEdit(link)}
+                                                    className="bg-blue-500 text-white p-1 rounded hover:bg-blue-600 transition-colors"
+                                                >
+                                                    <Edit2 size={12} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(link.id)}
+                                                    className="bg-red-500 text-white p-1 rounded hover:bg-red-600 transition-colors"
+                                                >
+                                                    <Trash2 size={12} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    
+                                    <button
+                                        onClick={() => {
+                                            setShowForm(true);
+                                            setEditingId(null);
+                                            setFormData({ name: '', url: '', icon: '🔗' });
+                                        }}
+                                        className="flex-shrink-0 bg-gradient-to-r from-indigo-500 to-purple-600 bg-opacity-80 backdrop-blur-md text-white rounded-lg px-4 py-2 shadow hover:shadow-md transition-all duration-200 hover:scale-105 flex items-center gap-2 border border-white border-opacity-30"
+                                    >
+                                        <Plus size={20} />
+                                        <span className="text-sm font-medium whitespace-nowrap">Add</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </nav>
+
+                        <div className="flex-1 p-8">
+                            <div className="max-w-6xl mx-auto">
+                                {links.length > 5 && (
+                                    <>
+                                        <h2 className="text-2xl font-bold text-white mb-4 drop-shadow-lg">More Shortcuts</h2>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                            {links.slice(5).map(link => (
+                                                <div key={link.id} className="relative group">
+                                                    <button
+                                                        onClick={() => handleOpenLink(link.url)}
+                                                        className="w-full bg-white bg-opacity-95 rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-200 hover:scale-105 flex flex-col items-center gap-2"
+                                                    >
+                                                        <span className="text-4xl">{link.icon}</span>
+                                                        <span className="text-xs font-semibold text-gray-700 text-center truncate w-full">
+                                                            {link.name}
+                                                        </span>
+                                                    </button>
+                                                    
+                                                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button
+                                                            onClick={() => handleEdit(link)}
+                                                            className="bg-blue-500 text-white p-1 rounded hover:bg-blue-600 transition-colors"
+                                                        >
+                                                            <Edit2 size={12} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(link.id)}
+                                                            className="bg-red-500 text-white p-1 rounded hover:bg-red-600 transition-colors"
+                                                        >
+                                                            <Trash2 size={12} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        {showForm && (
+                            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                                <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h2 className="text-2xl font-bold text-gray-800">
+                                            {editingId ? 'Edit Link' : 'Add New Link'}
+                                        </h2>
+                                        <button
+                                            onClick={() => {
+                                                setShowForm(false);
+                                                setEditingId(null);
+                                                setFormData({ name: '', url: '', icon: '🔗' });
+                                            }}
+                                            className="text-gray-500 hover:text-gray-700"
+                                        >
+                                            <X size={24} />
+                                        </button>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Name
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={formData.name}
+                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                placeholder="Google, YouTube, etc."
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                URL
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={formData.url}
+                                                onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                                                placeholder="google.com or https://google.com"
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Icon (Emoji)
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={formData.icon}
+                                                onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+                                                placeholder="🔗"
+                                                maxLength={2}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-3xl text-center"
+                                            />
+                                            <p className="text-xs text-gray-500 mt-1">Use any emoji as your icon</p>
+                                        </div>
+
+                                        <div className="flex gap-3 pt-2">
+                                            <button
+                                                onClick={() => {
+                                                    setShowForm(false);
+                                                    setEditingId(null);
+                                                    setFormData({ name: '', url: '', icon: '🔗' });
+                                                }}
+                                                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={handleSave}
+                                                className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                                            >
+                                                {editingId ? 'Update' : 'Add'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<LinkShortcutApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>
